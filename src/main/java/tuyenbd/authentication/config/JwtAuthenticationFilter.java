@@ -13,7 +13,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import tuyenbd.authentication.repository.TokenRepository;
+import tuyenbd.authentication.domain.auth.repository.TokenRepository;
+import tuyenbd.authentication.domain.auth.service.JwtService;
 
 import java.io.IOException;
 

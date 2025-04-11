@@ -1,4 +1,4 @@
-package tuyenbd.authentication.dto;
+package tuyenbd.authentication.controller.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

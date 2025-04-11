@@ -1,4 +1,4 @@
-package tuyenbd.authentication.dto;
+package tuyenbd.authentication.controller.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TokenValidationRequest {
-    private String token;
+public class UserUpdateRequest {
+    private String firstname;
+    private String lastname;
 }

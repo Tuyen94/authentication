@@ -7,12 +7,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import tuyenbd.authentication.config.JwtService;
-import tuyenbd.authentication.dto.AuthenticationRequest;
-import tuyenbd.authentication.dto.AuthenticationResponse;
-import tuyenbd.authentication.entity.User;
-import tuyenbd.authentication.repository.TokenRepository;
-import tuyenbd.authentication.repository.UserRepository;
+import tuyenbd.authentication.domain.auth.service.JwtService;
+import tuyenbd.authentication.domain.auth.service.AuthenticationService;
+import tuyenbd.authentication.controller.dto.AuthenticationRequest;
+import tuyenbd.authentication.controller.dto.AuthenticationResponse;
+import tuyenbd.authentication.domain.user.entity.User;
+import tuyenbd.authentication.domain.auth.repository.TokenRepository;
+import tuyenbd.authentication.domain.user.repository.UserRepository;
 
 import java.util.Optional;
 

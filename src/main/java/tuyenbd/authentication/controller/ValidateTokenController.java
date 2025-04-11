@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tuyenbd.authentication.dto.TokenValidationRequest;
-import tuyenbd.authentication.dto.TokenValidationResponse;
-import tuyenbd.authentication.service.TokenValidationService;
+import tuyenbd.authentication.controller.dto.TokenValidationRequest;
+import tuyenbd.authentication.controller.dto.TokenValidationResponse;
+import tuyenbd.authentication.domain.auth.service.TokenValidationService;
 
 @Slf4j
 @RestController

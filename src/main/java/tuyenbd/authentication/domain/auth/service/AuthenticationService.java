@@ -1,4 +1,4 @@
-package tuyenbd.authentication.service;
+package tuyenbd.authentication.domain.auth.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,15 +10,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import tuyenbd.authentication.dto.AuthenticationRequest;
-import tuyenbd.authentication.dto.AuthenticationResponse;
-import tuyenbd.authentication.dto.RegisterRequest;
-import tuyenbd.authentication.entity.Token;
-import tuyenbd.authentication.entity.TokenType;
-import tuyenbd.authentication.entity.User;
-import tuyenbd.authentication.repository.TokenRepository;
-import tuyenbd.authentication.repository.UserRepository;
-import tuyenbd.authentication.config.JwtService;
+import tuyenbd.authentication.controller.dto.AuthenticationRequest;
+import tuyenbd.authentication.controller.dto.AuthenticationResponse;
+import tuyenbd.authentication.controller.dto.RegisterRequest;
+import tuyenbd.authentication.domain.auth.entity.Token;
+import tuyenbd.authentication.domain.auth.enums.TokenType;
+import tuyenbd.authentication.domain.user.entity.User;
+import tuyenbd.authentication.domain.auth.repository.TokenRepository;
+import tuyenbd.authentication.domain.user.repository.UserRepository;
 
 import java.io.IOException;
 

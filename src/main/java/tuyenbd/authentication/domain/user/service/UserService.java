@@ -1,14 +1,14 @@
-package tuyenbd.authentication.service;
+package tuyenbd.authentication.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import tuyenbd.authentication.dto.UserUpdateRequest;
-import tuyenbd.authentication.entity.User;
-import tuyenbd.authentication.repository.TokenRepository;
-import tuyenbd.authentication.repository.UserRepository;
+import tuyenbd.authentication.controller.dto.UserUpdateRequest;
+import tuyenbd.authentication.domain.user.entity.User;
+import tuyenbd.authentication.domain.auth.repository.TokenRepository;
+import tuyenbd.authentication.domain.user.repository.UserRepository;
 
 import java.util.List;
 
@@ -40,9 +40,6 @@ public class UserService {
         }
         if (request.getLastname() != null) {
             user.setLastname(request.getLastname());
-        }
-        if (request.getEmail() != null) {
-            user.setEmail(request.getEmail());
         }
         
         return userRepository.save(user);

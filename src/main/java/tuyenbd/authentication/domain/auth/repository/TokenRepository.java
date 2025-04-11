@@ -1,8 +1,8 @@
-package tuyenbd.authentication.repository;
+package tuyenbd.authentication.domain.auth.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import tuyenbd.authentication.entity.Token;
+import tuyenbd.authentication.domain.auth.entity.Token;
 
 import java.util.List;
 import java.util.Optional;

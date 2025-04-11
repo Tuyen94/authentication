@@ -1,4 +1,4 @@
-package tuyenbd.authentication.config;
+package tuyenbd.authentication.domain.auth.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

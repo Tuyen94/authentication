@@ -1,10 +1,11 @@
-package tuyenbd.authentication.entity;
+package tuyenbd.authentication.domain.auth.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tuyenbd.authentication.domain.user.entity.User;
 
 import java.time.LocalDateTime;
 

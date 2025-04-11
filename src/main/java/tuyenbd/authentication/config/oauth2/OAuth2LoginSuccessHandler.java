@@ -8,10 +8,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import tuyenbd.authentication.entity.Role;
-import tuyenbd.authentication.entity.User;
-import tuyenbd.authentication.service.AuthenticationService;
-import tuyenbd.authentication.service.UserService;
+import tuyenbd.authentication.domain.user.enums.Role;
+import tuyenbd.authentication.domain.user.entity.User;
+import tuyenbd.authentication.domain.auth.service.AuthenticationService;
+import tuyenbd.authentication.domain.user.service.UserService;
 
 import java.io.IOException;
 

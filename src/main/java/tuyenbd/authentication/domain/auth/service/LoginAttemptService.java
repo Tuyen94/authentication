@@ -1,11 +1,11 @@
-package tuyenbd.authentication.service;
+package tuyenbd.authentication.domain.auth.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import tuyenbd.authentication.entity.LoginAttempt;
-import tuyenbd.authentication.entity.User;
-import tuyenbd.authentication.repository.LoginAttemptRepository;
+import tuyenbd.authentication.domain.auth.entity.LoginAttempt;
+import tuyenbd.authentication.domain.user.entity.User;
+import tuyenbd.authentication.domain.auth.repository.LoginAttemptRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -5,10 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import tuyenbd.authentication.dto.UserUpdateRequest;
-import tuyenbd.authentication.entity.User;
-import tuyenbd.authentication.repository.TokenRepository;
-import tuyenbd.authentication.repository.UserRepository;
+import tuyenbd.authentication.domain.user.service.UserService;
+import tuyenbd.authentication.controller.dto.UserUpdateRequest;
+import tuyenbd.authentication.domain.user.entity.User;
+import tuyenbd.authentication.domain.auth.repository.TokenRepository;
+import tuyenbd.authentication.domain.user.repository.UserRepository;
 
 import java.util.Optional;
 
@@ -39,13 +40,11 @@ class UserServiceTest {
                 .id(userId)
                 .firstname("John")
                 .lastname("Doe")
-                .email("john@example.com")
                 .build();
 
         UserUpdateRequest updateRequest = UserUpdateRequest.builder()
                 .firstname("Jane")
                 .lastname("Smith")
-                .email("jane@example.com")
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
@@ -58,6 +57,5 @@ class UserServiceTest {
         assertNotNull(updatedUser);
         assertEquals("Jane", updatedUser.getFirstname());
         assertEquals("Smith", updatedUser.getLastname());
-        assertEquals("jane@example.com", updatedUser.getEmail());
     }
 }

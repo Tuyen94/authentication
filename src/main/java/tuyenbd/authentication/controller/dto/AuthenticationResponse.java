@@ -1,4 +1,4 @@
-package tuyenbd.authentication.dto;
+package tuyenbd.authentication.controller.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

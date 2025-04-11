@@ -1,19 +1,15 @@
-package tuyenbd.authentication.dto;
+package tuyenbd.authentication.controller.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import tuyenbd.authentication.entity.Role;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegisterRequest {
-    private String firstname;
-    private String lastname;
+public class AuthenticationRequest {
     private String email;
     private String password;
-    private Role role;
 }

@@ -1,8 +1,8 @@
-package tuyenbd.authentication.repository;
+package tuyenbd.authentication.domain.auth.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import tuyenbd.authentication.entity.LoginAttempt;
-import tuyenbd.authentication.entity.User;
+import tuyenbd.authentication.domain.auth.entity.LoginAttempt;
+import tuyenbd.authentication.domain.user.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -1,4 +1,4 @@
-package tuyenbd.authentication.entity;
+package tuyenbd.authentication.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import tuyenbd.authentication.domain.user.enums.Role;
+import tuyenbd.authentication.domain.auth.entity.Token;
 
 import java.util.Collection;
 import java.util.List;

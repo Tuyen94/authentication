@@ -1,15 +1,14 @@
-package tuyenbd.authentication.service;
+package tuyenbd.authentication.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import tuyenbd.authentication.config.JwtService;
-import tuyenbd.authentication.dto.TokenValidationRequest;
-import tuyenbd.authentication.dto.TokenValidationResponse;
-import tuyenbd.authentication.entity.Token;
-import tuyenbd.authentication.entity.User;
-import tuyenbd.authentication.repository.TokenRepository;
-import tuyenbd.authentication.repository.UserRepository;
+import tuyenbd.authentication.controller.dto.TokenValidationRequest;
+import tuyenbd.authentication.controller.dto.TokenValidationResponse;
+import tuyenbd.authentication.domain.auth.entity.Token;
+import tuyenbd.authentication.domain.user.entity.User;
+import tuyenbd.authentication.domain.auth.repository.TokenRepository;
+import tuyenbd.authentication.domain.user.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor

@@ -8,9 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import tuyenbd.authentication.dto.AuthenticationRequest;
-import tuyenbd.authentication.dto.AuthenticationResponse;
-import tuyenbd.authentication.service.AuthenticationService;
+import tuyenbd.authentication.controller.dto.AuthenticationRequest;
+import tuyenbd.authentication.controller.dto.AuthenticationResponse;
+import tuyenbd.authentication.domain.auth.service.AuthenticationService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
