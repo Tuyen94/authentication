@@ -8,7 +8,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import tuyenbd.authentication.domain.auth.service.JwtService;
-import tuyenbd.authentication.domain.auth.service.AuthenticationService;
+import tuyenbd.authentication.domain.auth.service.impl.AuthenticationServiceImpl;
 import tuyenbd.authentication.controller.dto.AuthenticationRequest;
 import tuyenbd.authentication.controller.dto.AuthenticationResponse;
 import tuyenbd.authentication.domain.user.entity.User;
@@ -35,7 +35,7 @@ class AuthenticationServiceTest {
     private AuthenticationManager authenticationManager;
 
     @InjectMocks
-    private AuthenticationService authenticationService;
+    private AuthenticationServiceImpl authenticationService;
 
     @BeforeEach
     void setUp() {
@@ -67,3 +67,4 @@ class AuthenticationServiceTest {
         assertEquals("refresh-token", response.getRefreshToken());
     }
 }
+

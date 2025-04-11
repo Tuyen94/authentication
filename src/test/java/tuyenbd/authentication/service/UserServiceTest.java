@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import tuyenbd.authentication.domain.user.service.UserService;
+import tuyenbd.authentication.domain.user.service.impl.UserServiceImpl;
 import tuyenbd.authentication.controller.dto.UserUpdateRequest;
 import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.auth.repository.TokenRepository;
@@ -25,7 +25,7 @@ class UserServiceTest {
     private TokenRepository tokenRepository;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userService;
 
     @BeforeEach
     void setUp() {
@@ -59,3 +59,4 @@ class UserServiceTest {
         assertEquals("Smith", updatedUser.getLastname());
     }
 }
+

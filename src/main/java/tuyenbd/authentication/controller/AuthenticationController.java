@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tuyenbd.authentication.controller.dto.AuthenticationRequest;
 import tuyenbd.authentication.controller.dto.AuthenticationResponse;
-import tuyenbd.authentication.controller.dto.RegisterRequest;
+import tuyenbd.authentication.controller.dto.TokenValidationRequest;
+import tuyenbd.authentication.controller.dto.TokenValidationResponse;
 import tuyenbd.authentication.domain.auth.service.AuthenticationService;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/refresh-token")
+    @PostMapping("/token/refresh")
     public void refreshToken(
             HttpServletRequest request,
             HttpServletResponse response
@@ -41,5 +42,25 @@ public class AuthenticationController {
         log.info("Processing token refresh request");
         service.refreshToken(request, response);
         log.info("Successfully refreshed token");
+    }
+
+    @PostMapping("/token/validate")
+    public ResponseEntity<TokenValidationResponse> validateToken(
+            @RequestBody TokenValidationRequest request
+    ) {
+        log.info("Validating token");
+        TokenValidationResponse response = service.validateToken(request);
+        log.info("Token validation completed with status: {}", response.isValid());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/token/disable")
+    public ResponseEntity<Void> disableToken(
+            @RequestBody TokenValidationRequest request
+    ) {
+        log.info("Disabling token");
+        service.disableToken(request);
+        log.info("Token successfully disabled");
+        return ResponseEntity.ok().build();
     }
 }
