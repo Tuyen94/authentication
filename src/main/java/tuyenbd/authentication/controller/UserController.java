@@ -3,14 +3,18 @@ package tuyenbd.authentication.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import tuyenbd.authentication.controller.dto.RegisterRequest;
 import tuyenbd.authentication.controller.dto.UserUpdateRequest;
-import tuyenbd.authentication.domain.user.enums.Role;
 import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.user.service.UserService;
 
@@ -23,7 +27,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -47,23 +50,8 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@Valid @RequestBody RegisterRequest request) {
-        if (userService.existsByEmail(request.getEmail())) {
-            log.info("Email already exists {}", request.getEmail());
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body("Email already exists");
-        }
-
-        log.info("Create user {}", request.getEmail());
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
-                .role(Role.USER)
-                .build();
-        return ResponseEntity.ok(userService.createUser(user));
+    public ResponseEntity<User> createUser(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(userService.createUser(request));
     }
 
     @DeleteMapping("/{id}")

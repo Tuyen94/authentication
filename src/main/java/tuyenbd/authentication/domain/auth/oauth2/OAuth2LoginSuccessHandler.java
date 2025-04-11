@@ -1,4 +1,4 @@
-package tuyenbd.authentication.config.oauth2;
+package tuyenbd.authentication.domain.auth.oauth2;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +37,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                     .lastname(lastName)
                     .role(Role.USER)
                     .build();
-            userService.createUser(user);
+            userService.save(user);
         }
 
         var tokens = authenticationService.createTokens(email);

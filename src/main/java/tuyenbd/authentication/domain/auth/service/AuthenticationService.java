@@ -8,15 +8,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tuyenbd.authentication.controller.dto.AuthenticationRequest;
 import tuyenbd.authentication.controller.dto.AuthenticationResponse;
-import tuyenbd.authentication.controller.dto.RegisterRequest;
 import tuyenbd.authentication.domain.auth.entity.Token;
 import tuyenbd.authentication.domain.auth.enums.TokenType;
-import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.auth.repository.TokenRepository;
+import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.user.repository.UserRepository;
 
 import java.io.IOException;
@@ -24,53 +22,80 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
+
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-
-    public AuthenticationResponse register(RegisterRequest request) {
-        var user = User.builder()
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .build();
-        var savedUser = userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
-        saveUserToken(savedUser, jwtToken);
-        return AuthenticationResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
-    }
+    private final ObjectMapper objectMapper;
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-        var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+        authenticateCredentials(request.getEmail(), request.getPassword());
+        User user = getUserByEmail(request.getEmail());
+
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
         revokeAllUserTokens(user);
-        saveUserToken(user, jwtToken);
-        return AuthenticationResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
+        saveUserToken(user, accessToken);
+
+        return buildAuthResponse(accessToken, refreshToken);
     }
 
-    private void saveUserToken(User user, String jwtToken) {
-        var token = Token.builder()
+    public AuthenticationResponse createTokens(String email) {
+        User user = getUserByEmail(email);
+
+        revokeAllUserTokens(user);
+
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        saveUserToken(user, accessToken);
+        saveUserToken(user, refreshToken);
+
+        return buildAuthResponse(accessToken, refreshToken);
+    }
+
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return;
+        }
+
+        String refreshToken = authHeader.substring(7);
+        String userEmail = jwtService.extractUsername(refreshToken);
+        if (userEmail == null) {
+            return;
+        }
+
+        User user = getUserByEmail(userEmail);
+        if (!jwtService.isTokenValid(refreshToken, user)) {
+            return;
+        }
+
+        String newAccessToken = jwtService.generateToken(user);
+        revokeAllUserTokens(user);
+        saveUserToken(user, newAccessToken);
+
+        AuthenticationResponse authResponse = buildAuthResponse(newAccessToken, refreshToken);
+        objectMapper.writeValue(response.getOutputStream(), authResponse);
+    }
+
+    private void authenticateCredentials(String email, String password) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, password)
+        );
+    }
+
+    private User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    }
+
+    private void saveUserToken(User user, String tokenValue) {
+        Token token = Token.builder()
                 .user(user)
-                .token(jwtToken)
+                .token(tokenValue)
                 .tokenType(TokenType.BEARER)
                 .expired(false)
                 .revoked(false)
@@ -79,57 +104,21 @@ public class AuthenticationService {
     }
 
     private void revokeAllUserTokens(User user) {
-        var validUserTokens = tokenRepository.findAllValidTokensByUser(user.getId());
-        if (validUserTokens.isEmpty())
-            return;
-        validUserTokens.forEach(token -> {
+        var validTokens = tokenRepository.findAllValidTokensByUser(user.getId());
+        if (validTokens.isEmpty()) return;
+
+        validTokens.forEach(token -> {
             token.setExpired(true);
             token.setRevoked(true);
         });
-        tokenRepository.saveAll(validUserTokens);
+
+        tokenRepository.saveAll(validTokens);
     }
 
-    public AuthenticationResponse createTokens(String email) {
-        var user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        
-        revokeAllUserTokens(user);
-        var accessToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
-        saveUserToken(user, accessToken);
-        saveUserToken(user, refreshToken);
-        
+    private AuthenticationResponse buildAuthResponse(String accessToken, String refreshToken) {
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
-    }
-
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String userEmail;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
-        }
-        refreshToken = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(refreshToken);
-        if (userEmail != null) {
-            var user = this.userRepository.findByEmail(userEmail)
-                    .orElseThrow();
-            if (jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateToken(user);
-                revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
-                var authResponse = AuthenticationResponse.builder()
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
-                        .build();
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-            }
-        }
     }
 }
