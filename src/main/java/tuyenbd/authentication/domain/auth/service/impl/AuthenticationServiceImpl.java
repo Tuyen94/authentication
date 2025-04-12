@@ -29,7 +29,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
-    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -37,52 +36,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         authenticateCredentials(request.getEmail(), request.getPassword());
         User user = getUserByEmail(request.getEmail());
 
-        String accessToken = tokenService.generateAccessToken(user);
-        String refreshToken = tokenService.generateRefreshToken(user);
-
-        tokenService.revokeAllUserTokens(user);
-        tokenService.saveUserToken(user, accessToken);
-
-        return buildAuthResponse(accessToken, refreshToken);
-    }
-
-    @Override
-    public AuthenticationResponse createTokens(String email) {
-        User user = getUserByEmail(email);
-
-        tokenService.revokeAllUserTokens(user);
-
-        String accessToken = tokenService.generateAccessToken(user);
-        String refreshToken = tokenService.generateRefreshToken(user);
-
-        tokenService.saveUserToken(user, accessToken);
-        tokenService.saveUserToken(user, refreshToken);
-
-        return buildAuthResponse(accessToken, refreshToken);
-    }
-
-    @Override
-    @Transactional
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
-        }
-
-        String refreshToken = authHeader.substring(7);
-        Token token = tokenService.getToken(refreshToken);
-        if (!tokenService.isTokenValid(token)) {
-            return;
-        }
-
-        User user = token.getUser();
-
-        String newAccessToken = tokenService.generateAccessToken(user);
-        tokenService.revokeAllUserTokens(user);
-        tokenService.saveUserToken(user, newAccessToken);
-
-        AuthenticationResponse authResponse = buildAuthResponse(newAccessToken, refreshToken);
-        objectMapper.writeValue(response.getOutputStream(), authResponse);
+        return tokenService.createToken(user);
     }
 
     private void authenticateCredentials(String email, String password) {
@@ -94,12 +48,5 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-    }
-
-    private AuthenticationResponse buildAuthResponse(String accessToken, String refreshToken) {
-        return AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
     }
 }

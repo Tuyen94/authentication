@@ -42,7 +42,7 @@ public class AuthenticationController {
             HttpServletResponse response
     ) throws IOException {
         log.info("Processing token refresh request");
-        authService.refreshToken(request, response);
+        tokenService.refreshToken(request, response);
         log.info("Successfully refreshed token");
     }
 

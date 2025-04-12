@@ -45,34 +45,6 @@ class TokenServiceTest {
     }
 
     @Test
-    void generateAccessToken_ShouldDelegateToJwtService() {
-        // Arrange
-        User user = User.builder().email("test@test.com").build();
-        when(jwtService.generateToken(user)).thenReturn("access-token");
-
-        // Act
-        String token = tokenService.generateAccessToken(user);
-
-        // Assert
-        assertEquals("access-token", token);
-        verify(jwtService).generateToken(user);
-    }
-
-    @Test
-    void generateRefreshToken_ShouldDelegateToJwtService() {
-        // Arrange
-        User user = User.builder().email("test@test.com").build();
-        when(jwtService.generateRefreshToken(user)).thenReturn("refresh-token");
-
-        // Act
-        String token = tokenService.generateRefreshToken(user);
-
-        // Assert
-        assertEquals("refresh-token", token);
-        verify(jwtService).generateRefreshToken(user);
-    }
-
-    @Test
     void validateToken_WithValidToken_ShouldReturnValidResponse() {
         // Arrange
         String tokenValue = "valid-token";

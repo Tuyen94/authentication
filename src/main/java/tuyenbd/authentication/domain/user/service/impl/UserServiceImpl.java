@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
-                .role(Role.USER)
+                .role(request.getRole())
                 .build();
     }
 }
