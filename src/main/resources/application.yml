@@ -7,12 +7,10 @@ application:
         expiration: 604800000 # 7 days
 
 spring:
-  cache:
-    cache-names: tokenValidation,tokenClaims
-    caffeine:
-      spec: maximumSize=1000,expireAfterWrite=3600s
   application:
     name: authentication
+  cache:
+    type: caffeine # TODO use distributed cache for multi instances
   security:
     oauth2:
       client:

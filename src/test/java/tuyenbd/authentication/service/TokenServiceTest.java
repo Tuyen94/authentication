@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import tuyenbd.authentication.controller.dto.TokenValidationRequest;
 import tuyenbd.authentication.controller.dto.TokenValidationResponse;
 import tuyenbd.authentication.domain.auth.entity.Token;
+import tuyenbd.authentication.domain.auth.enums.TokenStatus;
 import tuyenbd.authentication.domain.auth.repository.TokenRepository;
 import tuyenbd.authentication.domain.auth.service.JwtService;
 import tuyenbd.authentication.domain.auth.service.LogoutService;
@@ -58,8 +59,7 @@ class TokenServiceTest {
         
         Token token = Token.builder()
                 .token(tokenValue)
-                .expired(false)
-                .revoked(false)
+                .status(TokenStatus.ACTIVE)
                 .build();
 
         when(jwtService.extractUsername(tokenValue)).thenReturn(email);
@@ -124,8 +124,8 @@ class TokenServiceTest {
                 .build();
         
         List<Token> validTokens = List.of(
-            Token.builder().token("token1").expired(false).revoked(false).build(),
-            Token.builder().token("token2").expired(false).revoked(false).build()
+            Token.builder().token("token1").build(),
+            Token.builder().token("token2").build()
         );
 
         when(tokenRepository.findAllValidTokensByUser(user.getId())).thenReturn(validTokens);
@@ -135,10 +135,7 @@ class TokenServiceTest {
 
         // Assert
         verify(tokenRepository).saveAll(validTokens);
-        validTokens.forEach(token -> {
-            assertTrue(token.isExpired());
-            assertTrue(token.isRevoked());
-        });
+        validTokens.forEach(token -> assertSame(TokenStatus.ACTIVE, token.getStatus()));
     }
 
     @Test

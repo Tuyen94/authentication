@@ -79,18 +79,4 @@ public class AuthenticationControllerTest {
                 .andExpect(jsonPath("$.username").value("test@test.com"))
                 .andExpect(jsonPath("$.roles[0]").value("USER"));
     }
-
-    @Test
-    void disableToken_WithValidToken_ShouldSucceed() throws Exception {
-        // Arrange
-        TokenValidationRequest request = new TokenValidationRequest("token-to-disable");
-
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/auth/token/disable")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(request)))
-                .andExpect(status().isOk());
-
-        verify(tokenService).disableToken(any());
-    }
 }

@@ -12,7 +12,6 @@ import tuyenbd.authentication.controller.dto.RegisterRequest;
 import tuyenbd.authentication.controller.dto.UserUpdateRequest;
 import tuyenbd.authentication.domain.auth.service.TokenService;
 import tuyenbd.authentication.domain.user.entity.User;
-import tuyenbd.authentication.domain.user.enums.Role;
 import tuyenbd.authentication.domain.user.repository.UserRepository;
 import tuyenbd.authentication.domain.user.service.UserService;
 
