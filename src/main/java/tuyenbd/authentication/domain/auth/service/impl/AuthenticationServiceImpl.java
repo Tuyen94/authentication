@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import tuyenbd.authentication.controller.dto.AuthenticationRequest;
@@ -115,7 +114,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         tokenRepository.save(token);
     }
 
-    private void revokeAllUserTokens(User user) {
+    @Override
+    public void revokeAllUserTokens(User user) {
         var validTokens = tokenRepository.findAllValidTokensByUser(user.getId());
         if (validTokens.isEmpty()) return;
 

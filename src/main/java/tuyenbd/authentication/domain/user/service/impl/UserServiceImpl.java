@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tuyenbd.authentication.controller.dto.RegisterRequest;
 import tuyenbd.authentication.controller.dto.UserUpdateRequest;
-import tuyenbd.authentication.domain.auth.repository.TokenRepository;
+import tuyenbd.authentication.domain.auth.service.AuthenticationService;
 import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.user.enums.Role;
 import tuyenbd.authentication.domain.user.repository.UserRepository;
@@ -23,7 +23,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
+    private final AuthenticationService authenticationService;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         User user = getUserById(id);
-        revokeUserTokens(id);
+        authenticationService.revokeAllUserTokens(user);
         userRepository.delete(user);
     }
 
@@ -62,6 +62,12 @@ public class UserServiceImpl implements UserService {
         User currentUser = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("Current user not found"));
         return currentUser.getId().equals(userId);
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Override
@@ -82,17 +88,6 @@ public class UserServiceImpl implements UserService {
         }
         if (request.getLastname() != null) {
             user.setLastname(request.getLastname());
-        }
-    }
-
-    private void revokeUserTokens(Long userId) {
-        var validTokens = tokenRepository.findAllValidTokensByUser(userId);
-        if (!validTokens.isEmpty()) {
-            validTokens.forEach(token -> {
-                token.setExpired(true);
-                token.setRevoked(true);
-            });
-            tokenRepository.saveAll(validTokens);
         }
     }
 
