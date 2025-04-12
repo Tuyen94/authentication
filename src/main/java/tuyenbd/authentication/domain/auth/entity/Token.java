@@ -5,9 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
 import tuyenbd.authentication.domain.auth.enums.TokenStatus;
 import tuyenbd.authentication.domain.auth.enums.TokenType;
 import tuyenbd.authentication.domain.user.entity.User;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -32,4 +35,9 @@ public class Token {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

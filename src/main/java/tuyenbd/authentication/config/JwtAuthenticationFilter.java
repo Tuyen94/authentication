@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tuyenbd.authentication.domain.auth.entity.Token;
+import tuyenbd.authentication.domain.auth.enums.TokenType;
 import tuyenbd.authentication.domain.auth.service.TokenService;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             String jwt = authHeader.substring(7);
-            Token token = tokenService.getToken(jwt);
+            Token token = tokenService.getToken(jwt, TokenType.ACCESS);
             UserDetails userDetails = token.getUser();
             if (tokenService.isTokenValid(token)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,

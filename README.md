@@ -67,3 +67,90 @@ Key configuration properties in application.yml:
 - Database connection
 - JWT secret key and expiration times
 - Token settings
+
+## API Examples
+
+### Authentication Endpoints
+
+1. Register a new user:
+```bash
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstname": "John",
+    "lastname": "Doe",
+    "email": "john.doe@example.com",
+    "password": "your_password",
+    "role": "USER"
+  }'
+```
+
+2. Authenticate user:
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/authenticate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "your_password"
+  }'
+```
+
+3. Refresh token:
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/token/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "your_refresh_token_here"
+  }'
+```
+
+4. Validate token:
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/token/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "your_token_here"
+  }'
+```
+
+5. Disable token:
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/token/disable \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "your_token_here"
+  }'
+```
+
+### User Management Endpoints
+
+1. Get all users (Admin only):
+```bash
+curl -X GET http://localhost:8080/api/v1/users \
+  -H "Authorization: Bearer your_access_token"
+```
+
+2. Get user by ID:
+```bash
+curl -X GET http://localhost:8080/api/v1/users/{id} \
+  -H "Authorization: Bearer your_access_token"
+```
+
+3. Update user:
+```bash
+curl -X PUT http://localhost:8080/api/v1/users/{id} \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your_access_token" \
+  -d '{
+    "firstname": "John",
+    "lastname": "Smith"
+  }'
+```
+
+4. Delete user (Admin only):
+```bash
+curl -X DELETE http://localhost:8080/api/v1/users/{id} \
+  -H "Authorization: Bearer your_access_token"
+```
+
+Note: Replace `your_access_token`, `your_refresh_token`, and other placeholder values with actual values. The server runs on `localhost:8080` by default - adjust the URL if your server runs on a different host or port.

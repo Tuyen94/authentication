@@ -12,6 +12,7 @@ import tuyenbd.authentication.controller.dto.RegisterRequest;
 import tuyenbd.authentication.controller.dto.UserUpdateRequest;
 import tuyenbd.authentication.domain.auth.service.TokenService;
 import tuyenbd.authentication.domain.user.entity.User;
+import tuyenbd.authentication.domain.user.enums.UserStatus;
 import tuyenbd.authentication.domain.user.repository.UserRepository;
 import tuyenbd.authentication.domain.user.service.UserService;
 
@@ -51,10 +52,15 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void deleteUser(Long id) {
+    public void inactiveUser(Long id) {
         User user = getUserById(id);
         tokenService.revokeAllUserTokens(user);
-        userRepository.delete(user);
+        inactiveUser(user);
+    }
+
+    private void inactiveUser(User user) {
+        user.setStatus(UserStatus.INACTIVE);
+        userRepository.save(user);
     }
 
     @Override

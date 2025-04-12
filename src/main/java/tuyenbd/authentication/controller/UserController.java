@@ -58,7 +58,7 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         log.info("Delete user {}", id);
-        userService.deleteUser(id);
+        userService.inactiveUser(id);
         return ResponseEntity.ok().build();
     }
 }

@@ -6,7 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import tuyenbd.authentication.controller.dto.TokenValidationRequest;
+import tuyenbd.authentication.controller.dto.TokenRequest;
 import tuyenbd.authentication.controller.dto.TokenValidationResponse;
 import tuyenbd.authentication.domain.auth.entity.Token;
 import tuyenbd.authentication.domain.auth.enums.TokenStatus;
@@ -50,7 +50,7 @@ class TokenServiceTest {
         // Arrange
         String tokenValue = "valid-token";
         String email = "test@test.com";
-        TokenValidationRequest request = new TokenValidationRequest(tokenValue);
+        TokenRequest request = new TokenRequest(tokenValue);
         
         User user = User.builder()
                 .email(email)
@@ -81,7 +81,7 @@ class TokenServiceTest {
         // Arrange
         String tokenValue = "invalid-token";
         String email = "test@test.com";
-        TokenValidationRequest request = new TokenValidationRequest(tokenValue);
+        TokenRequest request = new TokenRequest(tokenValue);
         
         User user = User.builder()
                 .email(email)
@@ -106,7 +106,7 @@ class TokenServiceTest {
         // Arrange
         String tokenValue = "token";
         String email = "nonexistent@test.com";
-        TokenValidationRequest request = new TokenValidationRequest(tokenValue);
+        TokenRequest request = new TokenRequest(tokenValue);
 
         when(jwtService.extractUsername(tokenValue)).thenReturn(email);
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
@@ -128,7 +128,7 @@ class TokenServiceTest {
             Token.builder().token("token2").build()
         );
 
-        when(tokenRepository.findAllValidTokensByUser(user.getId())).thenReturn(validTokens);
+        when(tokenRepository.findAllActiveTokensByUser(user.getId())).thenReturn(validTokens);
 
         // Act
         tokenService.revokeAllUserTokens(user);
@@ -141,7 +141,7 @@ class TokenServiceTest {
     @Test
     void disableToken_ShouldDelegateToLogoutService() {
         // Arrange
-        TokenValidationRequest request = new TokenValidationRequest("token-to-disable");
+        TokenRequest request = new TokenRequest("token-to-disable");
 
         // Act
         tokenService.disableToken(request);

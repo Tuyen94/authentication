@@ -1,6 +1,5 @@
 package tuyenbd.authentication.domain.auth.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -9,14 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tuyenbd.authentication.controller.dto.AuthenticationResponse;
-import tuyenbd.authentication.controller.dto.TokenValidationRequest;
+import tuyenbd.authentication.controller.dto.TokenRequest;
 import tuyenbd.authentication.controller.dto.TokenValidationResponse;
 import tuyenbd.authentication.domain.auth.entity.Token;
 import tuyenbd.authentication.domain.auth.enums.TokenStatus;
@@ -26,8 +24,6 @@ import tuyenbd.authentication.domain.auth.service.JwtService;
 import tuyenbd.authentication.domain.auth.service.TokenService;
 import tuyenbd.authentication.domain.user.entity.User;
 
-import java.io.IOException;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,16 +31,16 @@ public class TokenServiceImpl implements TokenService, LogoutHandler {
 
     private final TokenRepository tokenRepository;
     private final JwtService jwtService;
-    private final ObjectMapper objectMapper;
 
     @Lazy
     @Autowired
     private TokenServiceImpl self;
 
-    @Cacheable(cacheNames = "token", key = "#jwt")
+    @Cacheable(cacheNames = "token", key = "#jwt + #tokenType")
     @Override
-    public Token getToken(String jwt) {
-        return tokenRepository.findByToken(jwt)
+    public Token getToken(String jwt, TokenType tokenType) {
+        log.info("Get Token {} {}", jwt, tokenType);
+        return tokenRepository.findByTokenAndTokenType(jwt, tokenType)
                 .orElseThrow(() -> new IllegalArgumentException("Token not found"));
     }
 
@@ -72,6 +68,7 @@ public class TokenServiceImpl implements TokenService, LogoutHandler {
     }
 
     public void saveUserToken(User user, String tokenValue, TokenType tokenType) {
+        log.info("Save token {} {}", tokenType, tokenValue);
         Token token = Token.builder()
                 .user(user)
                 .token(tokenValue)
@@ -82,24 +79,16 @@ public class TokenServiceImpl implements TokenService, LogoutHandler {
 
     @Transactional
     @Override
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
-        }
-
-        String refreshToken = authHeader.substring(7);
-        Token token = self.getToken(refreshToken);
+    public AuthenticationResponse refreshToken(TokenRequest request) {
+        Token token = self.getToken(request.getToken(), TokenType.REFRESH);
         if (!isTokenValid(token)) {
-            return;
+            throw new IllegalArgumentException("Invalid refresh token");
         }
 
         User user = token.getUser();
         revokeAllUserTokens(user);
         String newAccessToken = createAccessToken(user);
-
-        AuthenticationResponse authResponse = buildAuthResponse(newAccessToken, refreshToken);
-        objectMapper.writeValue(response.getOutputStream(), authResponse);
+        return buildAuthResponse(newAccessToken, request.getToken());
     }
 
     private AuthenticationResponse buildAuthResponse(String accessToken, String refreshToken) {
@@ -112,19 +101,19 @@ public class TokenServiceImpl implements TokenService, LogoutHandler {
     @Transactional
     @Override
     public void revokeAllUserTokens(User user) {
-        var validTokens = tokenRepository.findAllValidTokensByUser(user.getId());
+        var validTokens = tokenRepository.findAllActiveTokensByUser(user.getId());
         if (validTokens.isEmpty()) return;
 
         validTokens.forEach(token -> token.setStatus(TokenStatus.INACTIVE));
         tokenRepository.saveAll(validTokens);
 
-        validTokens.forEach(token -> self.clearTokenCache(token.getToken()));
+        validTokens.forEach(token -> self.clearTokenCache(token));
     }
 
     @Override
-    public TokenValidationResponse validateToken(TokenValidationRequest request) {
+    public TokenValidationResponse validateToken(TokenRequest request) {
         String jwt = request.getToken();
-        Token token = self.getToken(jwt);
+        Token token = self.getToken(jwt, TokenType.ACCESS);
         User user = token.getUser();
 
         boolean isValid = isTokenValid(token);
@@ -142,7 +131,7 @@ public class TokenServiceImpl implements TokenService, LogoutHandler {
     }
 
     @Override
-    public void disableToken(TokenValidationRequest request) {
+    public void disableToken(TokenRequest request) {
         String token = request.getToken();
         self.disableToken(token);
     }
@@ -163,7 +152,7 @@ public class TokenServiceImpl implements TokenService, LogoutHandler {
     private void markTokenAsRevoked(Token token) {
         token.setStatus(TokenStatus.INACTIVE);
         tokenRepository.save(token);
-        self.clearTokenCache(token.getToken());
+        self.clearTokenCache(token);
     }
 
     @Override
@@ -180,8 +169,8 @@ public class TokenServiceImpl implements TokenService, LogoutHandler {
         return authHeader.substring(7);
     }
 
-    @CacheEvict(cacheNames = "token", key = "#jwt")
-    public void clearTokenCache(String jwt) {
-        log.info("Clear token cache {}", jwt);
+    @CacheEvict(cacheNames = "token", key = "#token.token + #token.tokenType")
+    public void clearTokenCache(Token token) {
+        log.info("Clear token cache {}", token);
     }
 }

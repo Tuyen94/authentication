@@ -15,7 +15,7 @@ public interface UserService {
 
     User updateUser(Long id, UserUpdateRequest request);
 
-    void deleteUser(Long id);
+    void inactiveUser(Long id);
 
     boolean isCurrentUser(Long userId);
 
