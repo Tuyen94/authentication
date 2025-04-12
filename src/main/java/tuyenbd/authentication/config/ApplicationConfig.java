@@ -1,5 +1,6 @@
 package tuyenbd.authentication.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -13,18 +14,10 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import tuyenbd.authentication.domain.user.service.UserService;
 
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
-
-    private final UserService userService;
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return userService::getUserByEmail;
-    }
 
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
@@ -49,6 +42,7 @@ public class ApplicationConfig {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return objectMapper;
     }
 }

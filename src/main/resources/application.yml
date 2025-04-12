@@ -7,6 +7,10 @@ application:
         expiration: 604800000 # 7 days
 
 spring:
+  cache:
+    cache-names: tokenValidation,tokenClaims
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=3600s
   application:
     name: authentication
   security:
@@ -50,3 +54,4 @@ spring:
         format_sql: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+

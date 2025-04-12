@@ -7,9 +7,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tuyenbd.authentication.controller.dto.RegisterRequest;
 import tuyenbd.authentication.controller.dto.UserUpdateRequest;
-import tuyenbd.authentication.domain.auth.service.AuthenticationService;
+import tuyenbd.authentication.domain.auth.service.TokenService;
 import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.user.enums.Role;
 import tuyenbd.authentication.domain.user.repository.UserRepository;
@@ -23,8 +24,8 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final AuthenticationService authenticationService;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
     @Override
     public User save(User user) {
@@ -49,10 +50,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     @Override
     public void deleteUser(Long id) {
         User user = getUserById(id);
-        authenticationService.revokeAllUserTokens(user);
+        tokenService.revokeAllUserTokens(user);
         userRepository.delete(user);
     }
 

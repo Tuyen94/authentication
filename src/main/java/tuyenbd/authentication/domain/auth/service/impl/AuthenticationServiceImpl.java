@@ -10,16 +10,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tuyenbd.authentication.controller.dto.AuthenticationRequest;
 import tuyenbd.authentication.controller.dto.AuthenticationResponse;
-import tuyenbd.authentication.controller.dto.TokenValidationRequest;
-import tuyenbd.authentication.controller.dto.TokenValidationResponse;
 import tuyenbd.authentication.domain.auth.entity.Token;
-import tuyenbd.authentication.domain.auth.enums.TokenType;
-import tuyenbd.authentication.domain.auth.repository.TokenRepository;
 import tuyenbd.authentication.domain.auth.service.AuthenticationService;
-import tuyenbd.authentication.domain.auth.service.JwtService;
-import tuyenbd.authentication.domain.auth.service.LogoutService;
+import tuyenbd.authentication.domain.auth.service.TokenService;
 import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.user.repository.UserRepository;
 
@@ -30,23 +26,22 @@ import java.io.IOException;
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    private final LogoutService logoutService;
     private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
-    private final JwtService jwtService;
+    private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
     private final ObjectMapper objectMapper;
 
     @Override
+    @Transactional
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticateCredentials(request.getEmail(), request.getPassword());
         User user = getUserByEmail(request.getEmail());
 
-        String accessToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
+        String accessToken = tokenService.generateAccessToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
 
-        revokeAllUserTokens(user);
-        saveUserToken(user, accessToken);
+        tokenService.revokeAllUserTokens(user);
+        tokenService.saveUserToken(user, accessToken);
 
         return buildAuthResponse(accessToken, refreshToken);
     }
@@ -55,18 +50,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthenticationResponse createTokens(String email) {
         User user = getUserByEmail(email);
 
-        revokeAllUserTokens(user);
+        tokenService.revokeAllUserTokens(user);
 
-        String accessToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
+        String accessToken = tokenService.generateAccessToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
 
-        saveUserToken(user, accessToken);
-        saveUserToken(user, refreshToken);
+        tokenService.saveUserToken(user, accessToken);
+        tokenService.saveUserToken(user, refreshToken);
 
         return buildAuthResponse(accessToken, refreshToken);
     }
 
     @Override
+    @Transactional
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -74,19 +70,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         String refreshToken = authHeader.substring(7);
-        String userEmail = jwtService.extractUsername(refreshToken);
-        if (userEmail == null) {
+        Token token = tokenService.getToken(refreshToken);
+        if (!tokenService.isTokenValid(token)) {
             return;
         }
 
-        User user = getUserByEmail(userEmail);
-        if (!jwtService.isTokenValid(refreshToken, user)) {
-            return;
-        }
+        User user = token.getUser();
 
-        String newAccessToken = jwtService.generateToken(user);
-        revokeAllUserTokens(user);
-        saveUserToken(user, newAccessToken);
+        String newAccessToken = tokenService.generateAccessToken(user);
+        tokenService.revokeAllUserTokens(user);
+        tokenService.saveUserToken(user, newAccessToken);
 
         AuthenticationResponse authResponse = buildAuthResponse(newAccessToken, refreshToken);
         objectMapper.writeValue(response.getOutputStream(), authResponse);
@@ -103,60 +96,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
-    private void saveUserToken(User user, String tokenValue) {
-        Token token = Token.builder()
-                .user(user)
-                .token(tokenValue)
-                .tokenType(TokenType.BEARER)
-                .expired(false)
-                .revoked(false)
-                .build();
-        tokenRepository.save(token);
-    }
-
-    @Override
-    public void revokeAllUserTokens(User user) {
-        var validTokens = tokenRepository.findAllValidTokensByUser(user.getId());
-        if (validTokens.isEmpty()) return;
-
-        validTokens.forEach(token -> {
-            token.setExpired(true);
-            token.setRevoked(true);
-        });
-
-        tokenRepository.saveAll(validTokens);
-    }
-
     private AuthenticationResponse buildAuthResponse(String accessToken, String refreshToken) {
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
-    }
-
-    @Override
-    public TokenValidationResponse validateToken(TokenValidationRequest request) {
-        String token = request.getToken();
-        String userEmail = jwtService.extractUsername(token);
-
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        boolean isValid = jwtService.isTokenValid(token, user) &&
-                tokenRepository.findByToken(token)
-                        .map(t -> !t.isExpired() && !t.isRevoked())
-                        .orElse(false);
-
-        return TokenValidationResponse.builder()
-                .valid(isValid)
-                .username(userEmail)
-                .roles(user.getAuthorities())
-                .build();
-    }
-
-    @Override
-    public void disableToken(TokenValidationRequest request) {
-        String token = request.getToken();
-        logoutService.logout(token);
     }
 }

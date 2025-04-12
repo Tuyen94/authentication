@@ -14,6 +14,7 @@ import tuyenbd.authentication.controller.dto.AuthenticationResponse;
 import tuyenbd.authentication.controller.dto.TokenValidationRequest;
 import tuyenbd.authentication.controller.dto.TokenValidationResponse;
 import tuyenbd.authentication.domain.auth.service.AuthenticationService;
+import tuyenbd.authentication.domain.auth.service.TokenService;
 
 import java.io.IOException;
 
@@ -23,14 +24,15 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class AuthenticationController {
 
-    private final AuthenticationService service;
+    private final AuthenticationService authService;
+    private final TokenService tokenService;
 
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(
             @RequestBody AuthenticationRequest request
     ) {
         log.info("Authentication request {}", request);
-        AuthenticationResponse response = service.authenticate(request);
+        AuthenticationResponse response = authService.authenticate(request);
         return ResponseEntity.ok(response);
     }
 
@@ -40,7 +42,7 @@ public class AuthenticationController {
             HttpServletResponse response
     ) throws IOException {
         log.info("Processing token refresh request");
-        service.refreshToken(request, response);
+        authService.refreshToken(request, response);
         log.info("Successfully refreshed token");
     }
 
@@ -49,7 +51,7 @@ public class AuthenticationController {
             @RequestBody TokenValidationRequest request
     ) {
         log.info("Validating token");
-        TokenValidationResponse response = service.validateToken(request);
+        TokenValidationResponse response = tokenService.validateToken(request);
         log.info("Token validation completed with status: {}", response.isValid());
         return ResponseEntity.ok(response);
     }
@@ -59,8 +61,9 @@ public class AuthenticationController {
             @RequestBody TokenValidationRequest request
     ) {
         log.info("Disabling token");
-        service.disableToken(request);
+        tokenService.disableToken(request);
         log.info("Token successfully disabled");
         return ResponseEntity.ok().build();
     }
 }
+
