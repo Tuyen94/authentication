@@ -1,14 +1,11 @@
 package tuyenbd.authentication.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
 import tuyenbd.authentication.controller.dto.AuthenticationRequest;
 import tuyenbd.authentication.controller.dto.AuthenticationResponse;
 import tuyenbd.authentication.controller.dto.TokenRequest;
@@ -16,66 +13,88 @@ import tuyenbd.authentication.controller.dto.TokenValidationResponse;
 import tuyenbd.authentication.domain.auth.service.AuthenticationService;
 import tuyenbd.authentication.domain.auth.service.TokenService;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+class AuthenticationControllerTest {
 
-@SpringBootTest
-@AutoConfigureMockMvc
-public class AuthenticationControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private AuthenticationService authService;
 
-    @MockBean
+    @Mock
     private TokenService tokenService;
 
-    @Test
-    void authenticate_WithValidCredentials_ShouldReturnTokens() throws Exception {
-        // Arrange
-        AuthenticationRequest request = new AuthenticationRequest("test@test.com", "password");
-        AuthenticationResponse response = AuthenticationResponse.builder()
-                .accessToken("access-token")
-                .refreshToken("refresh-token")
-                .build();
+    @InjectMocks
+    private AuthenticationController controller;
 
-        when(authService.authenticate(any())).thenReturn(response);
-
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/auth/authenticate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.access_token").value("access-token"))
-                .andExpect(jsonPath("$.refresh_token").value("refresh-token"));
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void validateToken_WithValidToken_ShouldReturnValidationResponse() throws Exception {
-        // Arrange
-        TokenRequest request = new TokenRequest("valid-token");
-        TokenValidationResponse response = TokenValidationResponse.builder()
-                .valid(true)
-                .username("test@test.com")
-                .roles(List.of(new SimpleGrantedAuthority("USER")))
-                .build();
+    void authenticate_ShouldReturnAuthenticationResponse() {
+        // Given
+        AuthenticationRequest request = new AuthenticationRequest("test@example.com", "password");
+        AuthenticationResponse expectedResponse = new AuthenticationResponse("token", "refreshToken");
+        when(authService.authenticate(request)).thenReturn(expectedResponse);
 
-        when(tokenService.validateToken(any())).thenReturn(response);
+        // When
+        ResponseEntity<AuthenticationResponse> response = controller.authenticate(request);
 
-        // Act & Assert
-        mockMvc.perform(post("/api/v1/auth/token/validate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.valid").value(true))
-                .andExpect(jsonPath("$.username").value("test@test.com"))
-                .andExpect(jsonPath("$.roles[0]").value("USER"));
+        // Then
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(expectedResponse, response.getBody());
+        verify(authService).authenticate(request);
+    }
+
+    @Test
+    void refreshToken_ShouldReturnNewAuthenticationResponse() {
+        // Given
+        TokenRequest request = new TokenRequest("refreshToken");
+        AuthenticationResponse expectedResponse = new AuthenticationResponse("newToken", "newRefreshToken");
+        when(tokenService.refreshToken(request)).thenReturn(expectedResponse);
+
+        // When
+        ResponseEntity<AuthenticationResponse> response = controller.refreshToken(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(expectedResponse, response.getBody());
+        verify(tokenService).refreshToken(request);
+    }
+
+    @Test
+    void validateToken_ShouldReturnValidationResponse() {
+        // Given
+        TokenRequest request = new TokenRequest("token");
+        TokenValidationResponse expectedResponse = new TokenValidationResponse();
+        when(tokenService.validateToken(request)).thenReturn(expectedResponse);
+
+        // When
+        ResponseEntity<TokenValidationResponse> response = controller.validateToken(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(expectedResponse, response.getBody());
+        verify(tokenService).validateToken(request);
+    }
+
+    @Test
+    void disableToken_ShouldReturnOkResponse() {
+        // Given
+        TokenRequest request = new TokenRequest("token");
+
+        // When
+        ResponseEntity<Void> response = controller.disableToken(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        verify(tokenService).disableToken(request);
     }
 }

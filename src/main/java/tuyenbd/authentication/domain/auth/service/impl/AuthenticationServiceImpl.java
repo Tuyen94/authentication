@@ -1,11 +1,7 @@
 package tuyenbd.authentication.domain.auth.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,13 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tuyenbd.authentication.controller.dto.AuthenticationRequest;
 import tuyenbd.authentication.controller.dto.AuthenticationResponse;
-import tuyenbd.authentication.domain.auth.entity.Token;
 import tuyenbd.authentication.domain.auth.service.AuthenticationService;
 import tuyenbd.authentication.domain.auth.service.TokenService;
 import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.user.repository.UserRepository;
-
-import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -33,11 +26,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     @Transactional
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        validateRequest(request);
         authenticateCredentials(request.getEmail(), request.getPassword());
         User user = getUserByEmail(request.getEmail());
 
         return tokenService.createToken(user);
     }
+
+    private void validateRequest(AuthenticationRequest request) {
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Invalid email");
+        }
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Invalid password");
+        }
+     }
 
     private void authenticateCredentials(String email, String password) {
         authenticationManager.authenticate(
