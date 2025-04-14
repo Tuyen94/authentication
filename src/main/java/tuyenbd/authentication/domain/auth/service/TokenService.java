@@ -1,15 +1,11 @@
 package tuyenbd.authentication.domain.auth.service;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import tuyenbd.authentication.controller.dto.AuthenticationResponse;
 import tuyenbd.authentication.controller.dto.TokenRequest;
 import tuyenbd.authentication.controller.dto.TokenValidationResponse;
 import tuyenbd.authentication.domain.auth.entity.Token;
 import tuyenbd.authentication.domain.auth.enums.TokenType;
 import tuyenbd.authentication.domain.user.entity.User;
-
-import java.io.IOException;
 
 public interface TokenService {
 

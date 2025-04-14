@@ -18,6 +18,7 @@ import tuyenbd.authentication.domain.auth.repository.TokenRepository;
 import tuyenbd.authentication.domain.auth.service.JwtService;
 import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.user.enums.Role;
+import tuyenbd.authentication.exception.TokenNotFoundException;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -80,7 +81,7 @@ class TokenServiceImplTest {
                 .thenReturn(Optional.empty());
 
         // When/Then
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(TokenNotFoundException.class,
                 () -> tokenService.getToken(jwt, tokenType));
     }
 
@@ -164,7 +165,7 @@ class TokenServiceImplTest {
                 .token(jwt)
                 .status(TokenStatus.ACTIVE)
                 .build();
-        when(tokenRepository.findByToken(jwt)).thenReturn(Optional.of(token));
+        when(tokenServiceSelf.getToken(jwt, TokenType.ACCESS)).thenReturn(token);
 
         // When
         tokenService.disableToken(jwt);
@@ -173,23 +174,6 @@ class TokenServiceImplTest {
         assertEquals(TokenStatus.INACTIVE, token.getStatus());
         verify(tokenRepository).save(token);
         verify(tokenServiceSelf).clearTokenCache(token);
-    }
-
-    @Test
-    void logout_WithValidToken_ShouldDisableToken() {
-        // Given
-        String jwt = "valid.token";
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
-        Authentication authentication = mock(Authentication.class);
-
-        when(request.getHeader("Authorization")).thenReturn("Bearer " + jwt);
-
-        // When
-        tokenService.logout(request, response, authentication);
-
-        // Then
-        verify(tokenServiceSelf).disableToken(jwt);
     }
 
     @Test

@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import tuyenbd.authentication.domain.auth.entity.Token;
 import tuyenbd.authentication.domain.auth.enums.TokenType;
 import tuyenbd.authentication.domain.auth.service.TokenService;
+import tuyenbd.authentication.exception.TokenNotFoundException;
 
 import java.io.IOException;
 
@@ -34,16 +35,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            String jwt = authHeader.substring(7);
-            Token token = tokenService.getToken(jwt, TokenType.ACCESS);
-            UserDetails userDetails = token.getUser();
-            if (tokenService.isTokenValid(token)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-                        null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+            validateToken(request, authHeader);
         }
         filterChain.doFilter(request, response);
+    }
+
+    private void validateToken(HttpServletRequest request, String authHeader) {
+        String jwt = authHeader.substring(7);
+        Token token;
+        try {
+            token = tokenService.getToken(jwt, TokenType.ACCESS);
+        } catch (TokenNotFoundException e) {
+            return;
+        }
+        if (!tokenService.isTokenValid(token)) {
+            return;
+        }
+        UserDetails userDetails = token.getUser();
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
+                null, userDetails.getAuthorities());
+        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authToken);
     }
 }

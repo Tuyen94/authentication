@@ -34,20 +34,20 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void authenticate_ShouldReturnAuthenticationResponse() {
+    void login_ShouldReturnAuthenticationResponse() {
         // Given
         AuthenticationRequest request = new AuthenticationRequest("test@example.com", "password");
         AuthenticationResponse expectedResponse = new AuthenticationResponse("token", "refreshToken");
-        when(authService.authenticate(request)).thenReturn(expectedResponse);
+        when(authService.login(request)).thenReturn(expectedResponse);
 
         // When
-        ResponseEntity<AuthenticationResponse> response = controller.authenticate(request);
+        ResponseEntity<AuthenticationResponse> response = controller.login(request);
 
         // Then
         assertNotNull(response);
         assertEquals(200, response.getStatusCode().value());
         assertEquals(expectedResponse, response.getBody());
-        verify(authService).authenticate(request);
+        verify(authService).login(request);
     }
 
     @Test

@@ -1,16 +1,12 @@
 package tuyenbd.authentication.domain.auth.service.impl;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tuyenbd.authentication.controller.dto.AuthenticationResponse;
@@ -23,11 +19,12 @@ import tuyenbd.authentication.domain.auth.repository.TokenRepository;
 import tuyenbd.authentication.domain.auth.service.JwtService;
 import tuyenbd.authentication.domain.auth.service.TokenService;
 import tuyenbd.authentication.domain.user.entity.User;
+import tuyenbd.authentication.exception.TokenNotFoundException;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TokenServiceImpl implements TokenService, LogoutHandler {
+public class TokenServiceImpl implements TokenService {
 
     private final TokenRepository tokenRepository;
     private final JwtService jwtService;
@@ -41,7 +38,7 @@ public class TokenServiceImpl implements TokenService, LogoutHandler {
     public Token getToken(String jwt, TokenType tokenType) {
         log.info("Get Token {} {}", jwt, tokenType);
         return tokenRepository.findByTokenAndTokenType(jwt, tokenType)
-                .orElseThrow(() -> new IllegalArgumentException("Token not found"));
+                .orElseThrow(() -> new TokenNotFoundException("Token not found"));
     }
 
     @Override
@@ -138,35 +135,18 @@ public class TokenServiceImpl implements TokenService, LogoutHandler {
 
     @Transactional
     @Override
-    public void disableToken(String token) {
-        tokenRepository.findByToken(token).ifPresentOrElse(
-                storedToken -> {
-                    markTokenAsRevoked(storedToken);
-                    SecurityContextHolder.clearContext();
-                    log.info("Successfully logged out. Token revoked for user.");
-                },
-                () -> log.warn("Token not found when logout")
-        );
+    public void disableToken(String jwt) {
+        log.info("Disable token start {}", jwt);
+        Token token = self.getToken(jwt, TokenType.ACCESS);
+        markTokenAsRevoked(token);
+        SecurityContextHolder.clearContext();
+        log.info("Disable token done {}", jwt);
     }
 
     private void markTokenAsRevoked(Token token) {
         token.setStatus(TokenStatus.INACTIVE);
         tokenRepository.save(token);
         self.clearTokenCache(token);
-    }
-
-    @Override
-    public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        String token = extractTokenFromRequest(request);
-        self.disableToken(token);
-    }
-
-    private String extractTokenFromRequest(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Logout request without Bearer token");
-        }
-        return authHeader.substring(7);
     }
 
     @CacheEvict(cacheNames = "token", key = "#token.token + #token.tokenType")

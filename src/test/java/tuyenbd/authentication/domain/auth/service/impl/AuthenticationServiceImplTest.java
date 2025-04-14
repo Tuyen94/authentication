@@ -53,13 +53,13 @@ class AuthenticationServiceImplTest {
     }
 
     @Test
-    void authenticate_WithValidCredentials_ShouldReturnAuthenticationResponse() {
+    void login_WithValidCredentials_ShouldReturnAuthenticationResponse() {
         // Given
         when(userRepository.findByEmail(validRequest.getEmail())).thenReturn(Optional.of(validUser));
         when(tokenService.createToken(validUser)).thenReturn(expectedResponse);
 
         // When
-        AuthenticationResponse response = authenticationService.authenticate(validRequest);
+        AuthenticationResponse response = authenticationService.login(validRequest);
 
         // Then
         assertNotNull(response);
@@ -73,71 +73,71 @@ class AuthenticationServiceImplTest {
     }
 
     @Test
-    void authenticate_WithInvalidCredentials_ShouldThrowBadCredentialsException() {
+    void login_WithInvalidCredentials_ShouldThrowBadCredentialsException() {
         // Given
         when(authenticationManager.authenticate(any()))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
         // When/Then
         assertThrows(BadCredentialsException.class,
-                () -> authenticationService.authenticate(validRequest));
+                () -> authenticationService.login(validRequest));
         verify(userRepository, never()).findByEmail(any());
         verify(tokenService, never()).createToken(any());
     }
 
     @Test
-    void authenticate_WithNonExistentUser_ShouldThrowUsernameNotFoundException() {
+    void login_WithNonExistentUser_ShouldThrowUsernameNotFoundException() {
         // Given
         when(authenticationManager.authenticate(any())).thenReturn(null);
         when(userRepository.findByEmail(validRequest.getEmail())).thenReturn(Optional.empty());
 
         // When/Then
         assertThrows(UsernameNotFoundException.class,
-                () -> authenticationService.authenticate(validRequest));
+                () -> authenticationService.login(validRequest));
         verify(tokenService, never()).createToken(any());
     }
 
     @Test
-    void authenticate_ShouldHandleNullEmail() {
+    void login_ShouldHandleNullEmail() {
         // Given
         AuthenticationRequest requestWithNullEmail = new AuthenticationRequest(null, "password123");
 
         // When/Then
         assertThrows(IllegalArgumentException.class,
-                () -> authenticationService.authenticate(requestWithNullEmail));
+                () -> authenticationService.login(requestWithNullEmail));
         verifyNoInteractions(userRepository, tokenService);
     }
 
     @Test
-    void authenticate_ShouldHandleNullPassword() {
+    void login_ShouldHandleNullPassword() {
         // Given
         AuthenticationRequest requestWithNullPassword = new AuthenticationRequest("test@example.com", null);
 
         // When/Then
         assertThrows(IllegalArgumentException.class,
-                () -> authenticationService.authenticate(requestWithNullPassword));
+                () -> authenticationService.login(requestWithNullPassword));
         verifyNoInteractions(userRepository, tokenService);
     }
 
     @Test
-    void authenticate_ShouldHandleEmptyEmail() {
+    void login_ShouldHandleEmptyEmail() {
         // Given
         AuthenticationRequest requestWithEmptyEmail = new AuthenticationRequest("", "password123");
 
         // When/Then
         assertThrows(IllegalArgumentException.class,
-                () -> authenticationService.authenticate(requestWithEmptyEmail));
+                () -> authenticationService.login(requestWithEmptyEmail));
         verifyNoInteractions(userRepository, tokenService);
     }
 
     @Test
-    void authenticate_ShouldHandleEmptyPassword() {
+    void login_ShouldHandleEmptyPassword() {
         // Given
         AuthenticationRequest requestWithEmptyPassword = new AuthenticationRequest("test@example.com", "");
 
         // When/Then
         assertThrows(IllegalArgumentException.class,
-                () -> authenticationService.authenticate(requestWithEmptyPassword));
+                () -> authenticationService.login(requestWithEmptyPassword));
         verifyNoInteractions(userRepository, tokenService);
     }
 }

@@ -25,12 +25,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     @Transactional
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public AuthenticationResponse login(AuthenticationRequest request) {
         validateRequest(request);
         authenticateCredentials(request.getEmail(), request.getPassword());
         User user = getUserByEmail(request.getEmail());
 
         return tokenService.createToken(user);
+    }
+
+    @Override
+    public void logout(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            tokenService.disableToken(token);
+        }
     }
 
     private void validateRequest(AuthenticationRequest request) {
@@ -40,7 +48,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (request.getPassword() == null || request.getPassword().isBlank()) {
             throw new IllegalArgumentException("Invalid password");
         }
-     }
+    }
 
     private void authenticateCredentials(String email, String password) {
         authenticationManager.authenticate(

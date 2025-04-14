@@ -5,5 +5,7 @@ import tuyenbd.authentication.controller.dto.AuthenticationResponse;
 
 public interface AuthenticationService {
 
-    AuthenticationResponse authenticate(AuthenticationRequest request);
+    AuthenticationResponse login(AuthenticationRequest request);
+
+    void logout(String authHeader);
 }
