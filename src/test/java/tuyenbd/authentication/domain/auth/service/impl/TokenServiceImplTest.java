@@ -158,7 +158,7 @@ class TokenServiceImplTest {
     }
 
     @Test
-    void disableToken_ShouldMarkTokenAsInactive() {
+    void disableToken_ShouldMarkTokenRequestAsInactive() {
         // Given
         String jwt = "token.to.disable";
         Token token = Token.builder()

@@ -143,7 +143,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public void disableToken(TokenRequest request) {
+    public void disableTokenRequest(TokenRequest request) {
         String token = request.getToken();
         self.disableToken(token);
     }

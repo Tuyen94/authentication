@@ -95,6 +95,20 @@ class AuthenticationControllerTest {
         // Then
         assertNotNull(response);
         assertEquals(200, response.getStatusCode().value());
-        verify(tokenService).disableToken(request);
+        verify(tokenService).disableTokenRequest(request);
+    }
+
+    @Test
+    void logout_WithValidAuthHeader_ShouldReturnOkResponse() {
+        // Given
+        String authHeader = "Bearer validToken";
+
+        // When
+        ResponseEntity<Void> response = controller.logout(authHeader);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        verify(authService).logout(authHeader);
     }
 }

@@ -21,7 +21,7 @@ public interface TokenService {
 
     boolean isTokenValid(Token token);
 
-    void disableToken(TokenRequest request);
+    void disableTokenRequest(TokenRequest request);
 
     void disableToken(String token);
 }

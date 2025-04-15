@@ -140,4 +140,40 @@ class AuthenticationServiceImplTest {
                 () -> authenticationService.login(requestWithEmptyPassword));
         verifyNoInteractions(userRepository, tokenService);
     }
+
+    @Test
+    void logout_WithValidBearerToken_ShouldDisableToken() {
+        // Given
+        String authHeader = "Bearer validToken";
+
+        // When
+        authenticationService.logout(authHeader);
+
+        // Then
+        verify(tokenService).disableToken("validToken");
+    }
+
+    @Test
+    void logout_WithNullAuthHeader_ShouldNotDisableToken() {
+        // Given
+        String authHeader = null;
+
+        // When
+        authenticationService.logout(authHeader);
+
+        // Then
+        verify(tokenService, never()).disableToken(any());
+    }
+
+    @Test
+    void logout_WithInvalidAuthHeader_ShouldNotDisableToken() {
+        // Given
+        String authHeader = "InvalidHeader";
+
+        // When
+        authenticationService.logout(authHeader);
+
+        // Then
+        verify(tokenService, never()).disableToken(any());
+    }
 }

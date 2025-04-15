@@ -56,7 +56,7 @@ public class AuthenticationController {
     @PostMapping("/token/disable")
     public ResponseEntity<Void> disableToken(@RequestBody TokenRequest request) {
         log.info("Disabling token");
-        tokenService.disableToken(request);
+        tokenService.disableTokenRequest(request);
         return ResponseEntity.ok().build();
     }
 }
