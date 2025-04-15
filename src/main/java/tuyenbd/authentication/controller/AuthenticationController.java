@@ -28,7 +28,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> login(
             @RequestBody AuthenticationRequest request
     ) {
-        log.info("Authentication request {}", request);
+        log.info("Authentication request {}", request.getEmail());
         AuthenticationResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }

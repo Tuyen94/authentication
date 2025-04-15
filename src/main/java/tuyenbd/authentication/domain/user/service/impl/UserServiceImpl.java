@@ -29,33 +29,48 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User save(User user) {
-        return userRepository.save(user);
+        log.debug("Saving user: {}", user.getEmail());
+        User savedUser = userRepository.save(user);
+        log.info("Successfully saved user with ID: {}", savedUser.getId());
+        return savedUser;
     }
 
     @Override
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        log.debug("Fetching all users");
+        List<User> users = userRepository.findAll();
+        log.debug("Found {} users", users.size());
+        return users;
     }
 
     @Override
     public User getUserById(Long id) {
+        log.debug("Fetching user by ID: {}", id);
         return userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+                .orElseThrow(() -> {
+                    log.warn("User not found with id: {}", id);
+                    return new UsernameNotFoundException("User not found with id: " + id);
+                });
     }
 
     @Override
     public User updateUser(Long id, UserUpdateRequest request) {
+        log.debug("Updating user with ID: {}", id);
         User user = getUserById(id);
         updateUserFields(user, request);
-        return userRepository.save(user);
+        User updatedUser = userRepository.save(user);
+        log.info("Successfully updated user with ID: {}", id);
+        return updatedUser;
     }
 
     @Transactional
     @Override
     public void inactiveUser(Long id) {
+        log.debug("Deactivating user with ID: {}", id);
         User user = getUserById(id);
         tokenService.revokeAllUserTokens(user);
         inactiveUser(user);
+        log.info("Successfully deactivated user with ID: {}", id);
     }
 
     private void inactiveUser(User user) {
@@ -73,8 +88,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByEmail(String email) {
+        log.debug("Fetching user by email: {}", email);
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    log.warn("User not found with email: {}", email);
+                    return new UsernameNotFoundException("User not found");
+                });
     }
 
     @Override
@@ -84,18 +103,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(RegisterRequest request) {
+        log.debug("Creating new user with email: {}", request.getEmail());
         validateNewUser(request.getEmail());
         User user = buildNewUser(request);
-        return save(user);
+        User savedUser = save(user);
+        log.info("Successfully created new user with ID: {}", savedUser.getId());
+        return savedUser;
     }
 
     private void updateUserFields(User user, UserUpdateRequest request) {
+        log.debug("Updating fields for user ID: {}", user.getId());
         if (request.getFirstname() != null) {
             user.setFirstname(request.getFirstname());
         }
         if (request.getLastname() != null) {
             user.setLastname(request.getLastname());
         }
+        log.debug("Field updates completed for user ID: {}", user.getId());
     }
 
     private void validateNewUser(String email) {
@@ -115,3 +139,11 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 }
+
+
+
+
+
+
+
+

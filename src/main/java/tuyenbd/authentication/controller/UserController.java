@@ -31,13 +31,19 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+        log.debug("Retrieving all users");
+        var users = userService.getAllUsers();
+        log.info("Retrieved {} users", users.size());
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN') or @userService.isCurrentUser(#id)")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+        log.debug("Retrieving user with id: {}", id);
+        var user = userService.getUserById(id);
+        log.info("Retrieved user: {}", user.getEmail());
+        return ResponseEntity.ok(user);
     }
 
     @PutMapping("/{id}")
@@ -46,12 +52,18 @@ public class UserController {
             @PathVariable Long id,
             @Valid @RequestBody UserUpdateRequest request
     ) {
-        return ResponseEntity.ok(userService.updateUser(id, request));
+        log.debug("Updating user with id: {}", id);
+        var updatedUser = userService.updateUser(id, request);
+        log.info("Successfully updated user: {}", updatedUser.getEmail());
+        return ResponseEntity.ok(updatedUser);
     }
 
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(userService.createUser(request));
+        log.debug("Creating new user with email: {}", request.getEmail());
+        var newUser = userService.createUser(request);
+        log.info("Successfully created user with id: {}", newUser.getId());
+        return ResponseEntity.ok(newUser);
     }
 
     @DeleteMapping("/{id}")
