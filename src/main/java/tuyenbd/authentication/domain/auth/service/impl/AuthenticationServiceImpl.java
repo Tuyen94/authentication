@@ -13,15 +13,16 @@ import tuyenbd.authentication.domain.auth.service.AuthenticationService;
 import tuyenbd.authentication.domain.auth.service.TokenService;
 import tuyenbd.authentication.domain.user.entity.User;
 import tuyenbd.authentication.domain.user.repository.UserRepository;
+import tuyenbd.authentication.domain.user.service.UserService;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    private final UserRepository userRepository;
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
+    private final UserService userService;
 
     @Override
     @Transactional
@@ -29,7 +30,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.info("Login attempt for user: {}", request.getEmail());
         validateRequest(request);
         authenticateCredentials(request.getEmail(), request.getPassword());
-        User user = getUserByEmail(request.getEmail());
+        User user = userService.getUserByEmail(request.getEmail());
         log.info("User {} successfully authenticated", request.getEmail());
 
         return tokenService.createToken(user);
@@ -62,11 +63,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password)
         );
-    }
-
-    private User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 }
 
